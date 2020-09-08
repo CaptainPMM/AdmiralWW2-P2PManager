@@ -1,3 +1,8 @@
-import Express from "express";
+/**
+ * ENTRY POINT / BOOTSTRAP APP
+ */
 
-console.log("Hello World");
+import ExpressServer from "./ExpressServer";
+
+const server: ExpressServer = new ExpressServer();
+server.serve();
