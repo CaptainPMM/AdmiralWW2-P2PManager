@@ -11,6 +11,12 @@ export default class P2PManager {
         this.mpGames = [];
     }
 
+    public stringifyMPGamesList(): string {
+        return JSON.stringify({
+            mpGames: this.mpGames.map((g) => g.toJSON()),
+        });
+    }
+
     public fetchMPGames(): MPGame[] {
         return this.mpGames;
     }

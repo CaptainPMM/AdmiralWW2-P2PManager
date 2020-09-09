@@ -41,9 +41,7 @@ export default class ExpressServer {
         });
 
         this.SERVER.get("/mpgameslist", (req, res) => {
-            res.status(200)
-                .type(this.JSON_TYPE)
-                .send(P2PManager.inst.fetchMPGames().map((g) => g.toJSON()));
+            res.status(200).type(this.JSON_TYPE).send(P2PManager.inst.stringifyMPGamesList());
         });
 
         this.SERVER.get("/registermpgame", (req, res) => {
