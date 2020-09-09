@@ -13,7 +13,9 @@ export default class P2PManager {
 
     public stringifyMPGamesList(): string {
         return JSON.stringify({
-            mpGames: this.mpGames.map((g) => g.toJSON()),
+            mpGames: this.mpGames.map((g) => {
+                return { name: g.name, hostIP: g.hostIP, hostPort: g.hostPort };
+            }),
         });
     }
 
