@@ -110,7 +110,8 @@ export default class ExpressServer {
             } else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "START_OR_REMOVE_MPGAME_PARAMETERS_MISSING_ERROR", "Please provide the get query parameter (token).").toJSON());
         });
 
-        this.SERVER.get("*", (req, res) => {
+        // 404 Not found
+        this.SERVER.route("*").all((req, res) => {
             res.status(404).type(this.JSON_TYPE).send(new ServerError(404, "REQUEST_NOT_FOUND", "The requested route does not exist.").toJSON());
         });
     }
