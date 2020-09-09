@@ -58,7 +58,7 @@ export default class ExpressServer {
             if (req.query.name != undefined && req.query.ownPort != undefined) {
                 const mpGame: MPGame | undefined = P2PManager.inst.fetchMPGame(<string>req.query.name);
                 if (mpGame != undefined) {
-                    if (mpGame.onNewPeer != undefined) mpGame.onNewPeer(new Peer(req.ip, parseInt(<string>req.query.ownPort)));
+                    if (mpGame.onNewPeer != undefined) mpGame.onNewPeer(new Peer(req.ip, parseInt(<string>req.query.ownPort))); // TODO req.ip is wrong
                     res.send(mpGame.toJSON());
                 } else
                     res.status(400)
@@ -71,7 +71,10 @@ export default class ExpressServer {
             if (req.query.token != undefined) {
                 const mpGame: MPGame | undefined = P2PManager.inst.fetchMPGameByToken(Token.parse(<string>req.query.token));
                 if (mpGame != undefined) {
-                    const timeout: NodeJS.Timeout = setTimeout(() => res.status(204).end(), this.LONG_POLLING_TIMEOUT);
+                    const timeout: NodeJS.Timeout = setTimeout(() => {
+                        mpGame.onNewPeer = undefined;
+                        res.status(204).end();
+                    }, this.LONG_POLLING_TIMEOUT);
                     mpGame.onNewPeer = (peer: Peer) => {
                         clearTimeout(timeout);
                         mpGame.onNewPeer = undefined;
