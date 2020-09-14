@@ -1,5 +1,4 @@
 import Express from "express";
-import RequestIP from "request-ip";
 import P2PManager from "./P2PManager";
 import MPGame from "./MPGame";
 import ServerError from "./ServerError";
@@ -45,36 +44,27 @@ export default class ExpressServer {
         });
 
         this.SERVER.get("/registermpgame", (req, res) => {
-            if (req.query.name != undefined && req.query.hostPort != undefined) {
-                const hostIP: string | null = RequestIP.getClientIp(req);
-                if (hostIP != null) {
-                    const newMpGame: MPGame = new MPGame(<string>req.query.name, hostIP, parseInt(<string>req.query.hostPort));
-                    const result: boolean = P2PManager.inst.registerMPGame(newMpGame);
-                    if (result) res.status(200).type(this.JSON_TYPE).send(newMpGame.getToken().toJSON());
-                    else
-                        res.status(400)
-                            .type(this.JSON_TYPE)
-                            .send(new ServerError(400, "REGISTER_MPGAME_DUPLICATE_ERROR", "Could not register a new mutiplayer game. Maybe the name is already used and/or the ip port combination is blocked.").toJSON());
-                } else res.status(503).type(this.JSON_TYPE).send(new ServerError(503, "REGISTER_MPGAME_HOST_IP_FAILED_ERROR", "Your (host) public IP could not be detected.").toJSON());
-            } else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "REGISTER_MPGAME_PARAMETERS_MISSING_ERROR", "Please provide all 2 get query parameters (name, hostPort).").toJSON());
+            if (req.query.name != undefined && req.query.hostIP != undefined && req.query.hostPort != undefined) {
+                const newMpGame: MPGame = new MPGame(<string>req.query.name, <string>req.query.hostIP, parseInt(<string>req.query.hostPort));
+                const result: boolean = P2PManager.inst.registerMPGame(newMpGame);
+                if (result) res.status(200).type(this.JSON_TYPE).send(newMpGame.getToken().toJSON());
+                else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "REGISTER_MPGAME_DUPLICATE_ERROR", "Could not register a new mutiplayer game. Maybe the name is already used and/or the ip port combination is blocked.").toJSON());
+            } else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "REGISTER_MPGAME_PARAMETERS_MISSING_ERROR", "Please provide all 3 get query parameters (name, hostIP, hostPort).").toJSON());
         });
 
         this.SERVER.get("/joinmpgame", (req, res) => {
-            if (req.query.name != undefined && req.query.ownPort != undefined) {
+            if (req.query.name != undefined && req.query.ownIP != undefined && req.query.ownPort != undefined) {
                 const mpGame: MPGame | undefined = P2PManager.inst.fetchMPGame(<string>req.query.name);
                 if (mpGame != undefined) {
-                    const peerIP: string | null = RequestIP.getClientIp(req);
-                    if (peerIP != null) {
-                        if (mpGame.onNewPeer != undefined) {
-                            mpGame.onNewPeer(new Peer(peerIP, parseInt(<string>req.query.ownPort)));
-                            res.status(200).type(this.JSON_TYPE).send(mpGame.toJSON());
-                        } else res.status(418).type(this.JSON_TYPE).send(new ServerError(418, "JOIN_MPGAME_HOST_SLEEPS_ERROR", "The host of the game is currently sleeping, try again.").toJSON());
-                    } else res.status(503).type(this.JSON_TYPE).send(new ServerError(503, "JOIN_MPGAME_PEER_IP_FAILED_ERROR", "Your public IP could not be detected.").toJSON());
+                    if (mpGame.onNewPeer != undefined) {
+                        mpGame.onNewPeer(new Peer(<string>req.query.ownIP, parseInt(<string>req.query.ownPort)));
+                        res.status(200).type(this.JSON_TYPE).send(mpGame.toJSON());
+                    } else res.status(418).type(this.JSON_TYPE).send(new ServerError(418, "JOIN_MPGAME_HOST_SLEEPS_ERROR", "The host of the game is currently sleeping, try again.").toJSON());
                 } else
                     res.status(400)
                         .type(this.JSON_TYPE)
                         .send(new ServerError(400, "JOIN_MPGAME_NAME_NOT_FOUND_ERROR", "A multiplayer game with the given get query parameter <" + <string>req.query.name + "> does not exist.").toJSON());
-            } else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "JOIN_MPGAME_PARAMETERS_MISSING_ERROR", "Please provide all 2 get query parameters (name, ownPort).").toJSON());
+            } else res.status(400).type(this.JSON_TYPE).send(new ServerError(400, "JOIN_MPGAME_PARAMETERS_MISSING_ERROR", "Please provide all 3 get query parameters (name, ownIP, ownPort).").toJSON());
         });
 
         this.SERVER.get("/listenforjoin", (req, res) => {
