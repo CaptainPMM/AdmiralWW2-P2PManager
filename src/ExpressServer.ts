@@ -4,12 +4,15 @@ import MPGame from "./MPGame";
 import ServerError from "./ServerError";
 import Token from "./Token";
 import Peer from "./Peer";
+import { Server } from "http";
 
 export default class ExpressServer {
     private readonly JSON_TYPE: string = "application/json";
     private readonly LONG_POLLING_TIMEOUT = 15_000; // in ms
     private readonly PORT: string | number = process.env.PORT || 80;
     private readonly SERVER = Express();
+
+    private serverHandle: Server | undefined;
 
     public constructor(overridePort?: number | undefined) {
         if (overridePort != undefined) this.PORT = overridePort;
@@ -28,10 +31,19 @@ export default class ExpressServer {
         return this.PORT;
     }
 
+    public getServer(): Express.Express | undefined {
+        return this.SERVER;
+    }
+
     public serve(): void {
-        this.SERVER.listen(this.PORT, () => {
+        this.serverHandle = this.SERVER.listen(this.PORT, () => {
             console.log("[ * ] ExpressServer listening on " + this.PORT);
         });
+    }
+
+    public stop(): void {
+        if (this.serverHandle != undefined) this.serverHandle.close();
+        this.serverHandle = undefined;
     }
 
     private setupRoutes(): void {

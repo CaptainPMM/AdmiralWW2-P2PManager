@@ -19,6 +19,10 @@ export default class P2PManager {
         });
     }
 
+    public resetList(): void {
+        this.mpGames = [];
+    }
+
     public fetchMPGames(): MPGame[] {
         return this.mpGames;
     }
